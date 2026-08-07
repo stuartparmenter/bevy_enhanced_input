@@ -5,10 +5,12 @@ use core::{any::TypeId, hash::Hash, iter, mem};
 
 use bevy::{
     ecs::{schedule::ScheduleLabel, system::SystemParam},
-    input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll, MouseScrollUnit},
+    input::mouse::{
+        AccumulatedMouseMotion, AccumulatedMouseScroll, MouseScrollPixelsPerLine, MouseScrollUnit,
+    },
     platform::collections::HashSet,
     prelude::*,
-    utils::TypeIdMap,
+    utils::TypeIdHashMap,
 };
 use log::{debug, trace};
 
@@ -27,6 +29,7 @@ pub(crate) struct InputReader<'w, 's> {
     mouse_buttons: Option<Res<'w, ButtonInput<MouseButton>>>,
     mouse_motion: Option<Res<'w, AccumulatedMouseMotion>>,
     mouse_scroll: Option<Res<'w, AccumulatedMouseScroll>>,
+    scroll_pixels_per_line: Option<Res<'w, MouseScrollPixelsPerLine>>,
     gamepads: Query<'w, 's, &'static Gamepad>,
     action_sources: Res<'w, ActionSources>,
     custom_inputs: Res<'w, CustomInputs>,
@@ -117,13 +120,18 @@ impl InputReader<'_, '_> {
                     return Vec2::ZERO.into();
                 }
 
+                let pixels_per_line = self
+                    .scroll_pixels_per_line
+                    .as_deref()
+                    .copied()
+                    .unwrap_or_default();
                 self.mouse_scroll
                     .as_ref()
                     .map(|s|
                         // Get a scroll amount proportional to the kind of input that generated it.
                         match s.unit {
                             MouseScrollUnit::Line => s.delta,
-                            MouseScrollUnit::Pixel => s.delta / MouseScrollUnit::SCROLL_UNIT_CONVERSION_FACTOR,
+                            MouseScrollUnit::Pixel => s.delta / pixels_per_line,
                         }
                     )
                     .unwrap_or_default()
@@ -362,7 +370,7 @@ impl Default for ActionSources {
 /// to correctly handle inputs it consumes itself, while still treating inputs consumed in
 /// [`PreUpdate`] as already consumed for all runs within the same frame.
 #[derive(Resource, Default, Deref, DerefMut)]
-pub(crate) struct ConsumedInputs(TypeIdMap<IgnoredInputs>);
+pub(crate) struct ConsumedInputs(TypeIdHashMap<IgnoredInputs>);
 
 /// Bindings from actions with [`ActionSettings::require_reset`] enabled that were removed.
 ///

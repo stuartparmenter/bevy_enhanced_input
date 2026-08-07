@@ -380,7 +380,7 @@ fn update_button_text(
     mut text: Query<&mut Text>,
 ) {
     for (button, children) in &buttons {
-        let mut iter = text.iter_many_mut(children);
+        let mut iter = text.iter_many_mut(children).matched();
         let mut text = iter.fetch_next().unwrap();
         text.clear();
         write!(text, "{}", button.binding).unwrap();
