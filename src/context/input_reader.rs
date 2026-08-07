@@ -318,11 +318,11 @@ impl InputReader<'_, '_> {
 /// # Examples
 ///
 /// Disables mouse buttons for actions when the cursor hovers a node with
-/// an `Interaction` component. It's a required component for `Button`,
-/// but you can add it to any UI node to disable specific actions on hover.
+/// a `Hovered` component. You can add it to any UI node to disable
+/// specific actions on hover.
 ///
 /// ```
-/// use bevy::prelude::*;
+/// use bevy::{picking::hover::Hovered, prelude::*};
 /// use bevy_enhanced_input::prelude::*;
 ///
 /// # let mut app = App::new();
@@ -330,9 +330,9 @@ impl InputReader<'_, '_> {
 ///
 /// fn disable_mouse(
 ///     mut action_sources: ResMut<ActionSources>,
-///     interactions: Query<&Interaction>,
+///     hovered: Query<&Hovered>,
 /// ) {
-///     let mouse_unused = interactions.iter().all(|&interaction| interaction == Interaction::None);
+///     let mouse_unused = hovered.iter().all(|hovered| !hovered.get());
 ///     action_sources.mouse_buttons = mouse_unused;
 ///     action_sources.mouse_wheel = mouse_unused;
 /// }
