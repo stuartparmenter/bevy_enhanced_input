@@ -358,9 +358,9 @@ fn deactivate<C: Component>(
     );
 
     if !*active {
-        for (settings, action_bindings) in actions.iter_many(context_actions) {
+        for (settings, action_bindings) in actions.iter_many(context_actions).matched() {
             if settings.require_reset {
-                pending.extend(bindings.iter_many(action_bindings).copied());
+                pending.extend(bindings.iter_many(action_bindings).matched().copied());
             }
         }
     }
@@ -408,7 +408,7 @@ pub(crate) fn reset_action<C: Component>(
     if let Some(action_bindings) = action_bindings
         && settings.require_reset
     {
-        pending.extend(bindings.iter_many(action_bindings).copied());
+        pending.extend(bindings.iter_many(action_bindings).matched().copied());
     }
 }
 
@@ -482,6 +482,7 @@ fn update<S: ScheduleLabel>(
 
             let value = bindings
                 .iter_many(action_bindings.into_iter().flatten())
+                .matched()
                 .map(|(_, b, ..)| b.mod_keys_count())
                 .max()
                 .unwrap_or(0);
@@ -496,7 +497,7 @@ fn update<S: ScheduleLabel>(
 
         reader.set_gamepad(gamepad);
 
-        let mut actions_iter = actions.iter_many_mut(&*context_actions);
+        let mut actions_iter = actions.iter_many_mut(&*context_actions).matched();
         while let Some((
             action,
             action_name,
@@ -540,8 +541,9 @@ fn update<S: ScheduleLabel>(
                 let dim = actions_data.get(action).map(|(v, ..)| v.dim()).unwrap();
                 let actions_data = actions_data.as_readonly();
                 let mut tracker = TriggerTracker::new(ActionValue::zero(dim));
-                let mut bindings_iter =
-                    bindings.iter_many_mut(action_bindings.into_iter().flatten());
+                let mut bindings_iter = bindings
+                    .iter_many_mut(action_bindings.into_iter().flatten())
+                    .matched();
                 while let Some((
                     binding_entity,
                     &binding,
@@ -686,7 +688,7 @@ fn apply<S: ScheduleLabel>(
             instance.entity(),
         );
 
-        let mut actions_iter = actions.iter_many_mut(context_actions);
+        let mut actions_iter = actions.iter_many_mut(context_actions).matched();
         while let Some(mut action) = actions_iter.fetch_next() {
             let fns = *action.get::<ActionFns>().unwrap();
             let value = *action.get::<ActionValue>().unwrap();
