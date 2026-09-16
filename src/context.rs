@@ -314,7 +314,7 @@ impl ScheduleContexts {
 }
 
 fn register<C: Component, S: ScheduleLabel>(
-    insert: On<Insert, ContextPriority<C>>,
+    insert: On<Insert<ContextPriority<C>>>,
     mut instances: ResMut<ContextInstances<S>>,
     contexts: Query<&ContextPriority<C>, Allow<Disabled>>,
 ) {
@@ -329,7 +329,7 @@ fn register<C: Component, S: ScheduleLabel>(
 }
 
 fn unregister<C: Component, S: ScheduleLabel>(
-    discard: On<Discard, ContextPriority<C>>,
+    discard: On<Discard<ContextPriority<C>>>,
     mut instances: ResMut<ContextInstances<S>>,
 ) {
     debug!(
@@ -341,7 +341,7 @@ fn unregister<C: Component, S: ScheduleLabel>(
 }
 
 fn deactivate<C: Component>(
-    insert: On<Insert, ContextActivity<C>>,
+    insert: On<Insert<ContextActivity<C>>>,
     mut pending: ResMut<PendingBindings>,
     contexts: Query<(&ContextActivity<C>, &Actions<C>)>,
     actions: Query<(&ActionSettings, &Bindings)>,
@@ -368,7 +368,7 @@ fn deactivate<C: Component>(
 
 /// Resets action data and triggers corresponding events on removal.
 pub(crate) fn reset_action<C: Component>(
-    remove: On<Remove, ActionOf<C>>,
+    remove: On<Remove<ActionOf<C>>>,
     mut commands: Commands,
     mut pending: ResMut<PendingBindings>,
     mut actions: Query<(
